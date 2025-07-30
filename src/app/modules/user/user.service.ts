@@ -16,10 +16,11 @@ export const createUser = async (payload: IUSER) => {
     provider: "credential",
     providerId: email as string,
   };
-
+  const lastLogin = null;
   const sendData = {
     ...rest,
     email,
+    lastLogin,
     auths: [authProvider],
     password: hashedPassword,
   };

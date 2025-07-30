@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { IsActive, Role } from "./user.interface";
+import { Status, Role } from "./user.interface";
 
 export const createUserZodSchema = z.object({
   name: z
@@ -38,6 +38,27 @@ export const createUserZodSchema = z.object({
     .min(5, { message: "Address must be at least 5 characters" })
     .max(100, { message: "Address cannot exceed 100 characters" })
     .optional(),
+
+  role: z.enum([Role.USER, Role.AGENT, Role.ADMIN]).optional(),
+  picture: z.string().url("Invalid URL").optional(),
+  isEmailVerified: z
+    .boolean({
+      invalid_type_error:
+        "isEmailVerified must be a boolean value (true or false).",
+    })
+    .optional(),
+  isPhoneVerified: z
+    .boolean({
+      invalid_type_error:
+        "isPhoneVerified must be a boolean value (true or false).",
+    })
+    .optional(),
+  isActive: z
+    .enum([Status.ACTIVE, Status.BLOCKED, Status.SUSPENDED])
+    .optional(),
+  isDeleted: z.boolean().optional(),
+  loginAttempts: z.number().nonnegative().optional(),
+  lastLogin: z.date().optional(),
 });
 
 export const updateUserZodSchema = z.object({
@@ -80,9 +101,9 @@ export const updateUserZodSchema = z.object({
     })
     .optional(),
 
-  IsActive: z
-    .enum(Object.values(IsActive) as [string], {
-      invalid_type_error: "IsActive must be one of the allowed values.",
+  Status: z
+    .enum(Object.values(Status) as [string], {
+      invalid_type_error: "Status must be one of the allowed values.",
     })
     .optional(),
 
@@ -97,4 +118,30 @@ export const updateUserZodSchema = z.object({
     .min(5, { message: "Address must be at least 5 characters long." })
     .max(100, { message: "Address must not exceed 100 characters." })
     .optional(),
+
+  picture: z.string().url().optional(),
+
+  isEmailVerified: z
+    .boolean({
+      invalid_type_error:
+        "isEmailVerified must be a boolean value (true or false).",
+    })
+    .optional(),
+  isPhoneVerified: z
+    .boolean({
+      invalid_type_error:
+        "isPhoneVerified must be a boolean value (true or false).",
+    })
+    .optional(),
+  isActive: z
+    .enum([Status.ACTIVE, Status.BLOCKED, Status.SUSPENDED])
+    .optional(),
+
+  loginAttempts: z
+    .number({
+      invalid_type_error: "loginAttempts must be a number.",
+    })
+    .nonnegative()
+    .optional(),
+  lastLogin: z.date().optional(),
 });

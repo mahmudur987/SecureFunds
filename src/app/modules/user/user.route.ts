@@ -9,7 +9,7 @@ import { Role } from "./user.interface";
 const router = Router();
 
 router.post(
-  "/register",
+  "/create-user",
   validateRequest(createUserZodSchema),
   userController.createUser
 );

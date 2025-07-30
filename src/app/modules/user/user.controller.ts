@@ -25,7 +25,7 @@ const getAllUsers = catchAsync(
     sendResponse(res, {
       statusCode: statusCode.CREATED,
       success: true,
-      message: "user created successfully",
+      message: "user retrieved successfully",
       data: result,
     });
   }
@@ -35,13 +35,11 @@ const updateUser = catchAsync(
     const userId = req.params.id;
     const payload = req.body;
     const tokenVerify = req.user;
-
     const result = await useServices.updateUser(userId, payload, tokenVerify);
-
     sendResponse(res, {
       statusCode: statusCode.CREATED,
       success: true,
-      message: "user created successfully",
+      message: "user update successfully",
       data: result,
     });
   }

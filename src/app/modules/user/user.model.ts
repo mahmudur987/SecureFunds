@@ -1,6 +1,5 @@
 import { model, Schema } from "mongoose";
-import { IAuthProvider, IsActive, IUSER, Role } from "./user.interface";
-import { boolean, string } from "zod";
+import { IAuthProvider, IUSER, Role, Status } from "./user.interface";
 
 const authProviderSchema = new Schema<IAuthProvider>(
   {
@@ -23,17 +22,23 @@ const userSchema = new Schema<IUSER>(
     phone: { type: String },
     picture: { type: String },
     address: { type: String },
-    isVerified: { type: Boolean, default: false },
+    isEmailVerified: { type: Boolean, default: false },
+    isPhoneVerified: { type: Boolean, default: false },
     isActive: {
       type: String,
-      enum: Object.values(IsActive),
-      default: IsActive.ACTIVE,
+      enum: Object.values(Status),
+      default: Status.ACTIVE,
     },
     auths: [authProviderSchema],
     isDeleted: { type: Boolean, default: false },
+    loginAttempts: { type: Number, default: 0 },
+    lastLogin: { type: Date },
   },
 
   { versionKey: false, timestamps: true }
 );
 
 export const User = model<IUSER>("User", userSchema);
+
+//
+// export const userJsonForCreate: IUSER = ;

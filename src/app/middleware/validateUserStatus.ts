@@ -1,4 +1,4 @@
-import { IsActive, IUSER, Role } from "../modules/user/user.interface";
+import { IsActive, IUSER } from "../modules/user/user.interface";
 
 export interface UserValidationResult {
   isValid: boolean;

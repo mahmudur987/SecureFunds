@@ -12,7 +12,7 @@ export const globalErrorHandler = async (
 ) => {
   let statusCode = 500;
   let message = `something went wrong `;
-
+  // console.log(err);
   if (err instanceof AppError) {
     statusCode = err.statusCode;
     message = err.message;

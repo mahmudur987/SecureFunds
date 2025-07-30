@@ -11,6 +11,8 @@ import { router } from "./app/routes/modules.route";
 const app = express();
 
 // middleware
+app.use(express.json());
+
 app.use(
   expressSession({
     secret: "your secrete",
@@ -20,7 +22,6 @@ app.use(
 );
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));
