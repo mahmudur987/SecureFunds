@@ -1,4 +1,4 @@
-import { ObjectId, Types } from "mongoose";
+import { Types } from "mongoose";
 
 export enum TransactionType {
   "Send-Money" = "Send-Money",
