@@ -5,6 +5,7 @@ import { createUserZodSchema, updateUserZodSchema } from "./user.validate";
 import { validateRequest } from "../../middleware/validateRequest";
 import { verifyAdmin } from "../../middleware/verifyAdmin";
 import { Role } from "./user.interface";
+import { CheckRole } from "../../middleware/checkRole";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.post(
   validateRequest(createUserZodSchema),
   userController.createUser
 );
-router.get("/", userController.getAllUsers);
+router.get("/", CheckRole("ADMIN"), userController.getAllUsers);
 router.patch(
   "/:id",
   verifyAdmin(...Object.values(Role)),

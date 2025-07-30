@@ -19,17 +19,19 @@ export interface IAuthProvider {
 export interface IUSER {
   _id?: Types.ObjectId;
   name: string;
-  email: string;
+  email?: string;
   isEmailVerified?: boolean;
-  password?: string;
-  phone?: string;
+  password: string;
+  phone: string;
   isPhoneVerified?: boolean;
   picture?: string;
   address?: string;
   isDeleted?: string;
-  isActive?: Status;
+  status?: Status;
   role?: Role;
   auths?: IAuthProvider[];
   loginAttempts?: number;
+  loginWrongAttempts?: number;
   lastLogin?: Date;
+  wallet?: Types.ObjectId;
 }

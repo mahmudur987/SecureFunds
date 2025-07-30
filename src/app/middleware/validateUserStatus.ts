@@ -1,4 +1,4 @@
-import { IsActive, IUSER } from "../modules/user/user.interface";
+import { IUSER, Status } from "../modules/user/user.interface";
 
 export interface UserValidationResult {
   isValid: boolean;
@@ -17,13 +17,17 @@ export const validateUserStatus = (
     };
   }
 
-  if (
-    user.isActive === IsActive.BLOCKED ||
-    user.isActive === IsActive.INACTIVE
-  ) {
+  if (user.status === Status.BLOCKED) {
     return {
       isValid: false,
-      message: "User is blocked or inactive",
+      message: "Your account is blocked",
+      statusCode: 400,
+    };
+  }
+  if (user.status === Status.SUSPENDED) {
+    return {
+      isValid: false,
+      message: "Your account is suspended",
       statusCode: 400,
     };
   }
@@ -36,13 +40,23 @@ export const validateUserStatus = (
     };
   }
 
-  if (!user.isVerified) {
+  if (!user.isEmailVerified) {
     return {
       isValid: false,
-      message: "User is not verified",
+      message: "User email is not verified",
       statusCode: 400,
     };
   }
 
-  return { isValid: true };
+  if (!user.isPhoneVerified) {
+    return {
+      isValid: false,
+      message: "User phone is not verified",
+      statusCode: 400,
+    };
+  }
+
+  return {
+    isValid: true,
+  };
 };

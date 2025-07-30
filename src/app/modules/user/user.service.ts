@@ -4,33 +4,57 @@ import statusCode from "http-status-codes";
 import { IAuthProvider, IUSER, Role } from "./user.interface";
 import { User } from "./user.model";
 import bcrypt from "bcryptjs";
-export const createUser = async (payload: IUSER) => {
-  const { email, password, ...rest } = payload;
-  const hashedPassword = await bcrypt.hash(password as string, 8);
-  const alreadyExist = await User.findOne({ email });
-
-  if (alreadyExist) {
-    throw new AppError(500, "user already exist");
+import { Wallet } from "../wallet/wallet.model";
+export const createUser = async (
+  payload: IUSER,
+  session: mongoose.ClientSession
+) => {
+  const { email, phone, password, ...rest } = payload;
+  console.log(phone);
+  if (!phone || !password) {
+    throw new AppError(400, "Provide your phone and password");
   }
+
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const alreadyPhoneExist = await User.findOne({ phone }).session(session);
+  if (alreadyPhoneExist) throw new AppError(400, "Phone already exists");
+
+  const alreadyEmailExist = await User.findOne({ email }).session(session);
+  if (alreadyEmailExist) throw new AppError(400, "Email already exists");
+
   const authProvider: IAuthProvider = {
     provider: "credential",
-    providerId: email as string,
+    providerId: phone,
   };
-  const lastLogin = null;
+
   const sendData = {
     ...rest,
     email,
-    lastLogin,
+    lastLogin: null,
+    phone,
     auths: [authProvider],
     password: hashedPassword,
   };
 
-  const result = await User.create(sendData);
-  return result;
+  const user = await User.create([sendData], { session });
+  const walletData = {
+    userId: user[0]._id,
+    balance: 50,
+    isBlocked: false,
+  };
+
+  const wallet = await Wallet.create([walletData], { session });
+  user[0].wallet = wallet[0]._id;
+  user[0].save();
+  return {
+    user: user[0],
+    wallet: wallet[0],
+  };
 };
 
 const getAllUsers = async () => {
-  const result = await User.find({});
+  const result = await User.find({}).populate("wallet");
   return result;
 };
 

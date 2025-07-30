@@ -1,5 +1,5 @@
 import AppError from "../../errorHandler/AppError";
-import { IAuthProvider, IsActive, IUSER } from "../user/user.interface";
+import { IAuthProvider, IsActive, IUSER, Status } from "../user/user.interface";
 import { User } from "../user/user.model";
 import statusCode from "http-status-codes";
 import bcrypt from "bcryptjs";
@@ -14,12 +14,12 @@ import { sendmail } from "../../utils/sendEmail";
 
 export const jwtSecrete = "Ph-tour-Management Backend";
 const credentialLogin = async (payload: Partial<IUSER>) => {
-  const { email, password } = payload;
+  const { phone, password } = payload;
 
-  const isUserExist = await User.findOne({ email });
+  const isUserExist = await User.findOne({ phone });
 
   if (!isUserExist) {
-    throw new AppError(statusCode.BAD_REQUEST, "Email not exist");
+    throw new AppError(statusCode.BAD_REQUEST, "Phone not exist");
   }
   if (!password) {
     throw new AppError(statusCode.BAD_REQUEST, "provide your password");
@@ -30,7 +30,20 @@ const credentialLogin = async (payload: Partial<IUSER>) => {
   );
 
   if (!isPasswordMatch) {
-    throw new AppError(statusCode.BAD_REQUEST, "Incorrect password");
+    if (Number(isUserExist.loginWrongAttempts) <= 2) {
+      isUserExist.loginWrongAttempts =
+        (Number(isUserExist.loginWrongAttempts) as number) + 1;
+      await isUserExist.save();
+      throw new AppError(statusCode.BAD_REQUEST, "Incorrect password");
+    } else {
+      isUserExist.status = Status.SUSPENDED;
+      await isUserExist.save();
+      throw new AppError(statusCode.BAD_REQUEST, "You are Suspended");
+    }
+  }
+  const validation: UserValidationResult = validateUserStatus(isUserExist);
+  if (!validation.isValid) {
+    throw new AppError(statusCode.BAD_REQUEST, validation.message as string);
   }
   const jwtPayload = {
     name: isUserExist.name,
@@ -68,14 +81,9 @@ const getNewAccessToken = async (refreshToken: string) => {
   if (!isUserExist) {
     throw new AppError(statusCode.BAD_REQUEST, "Email not exist");
   }
-  if (
-    isUserExist.isActive === IsActive.BLOCKED ||
-    isUserExist.isActive === IsActive.INACTIVE
-  ) {
-    throw new AppError(statusCode.BAD_REQUEST, "user bloked");
-  }
-  if (isUserExist.isDeleted) {
-    throw new AppError(statusCode.BAD_REQUEST, "user deleted");
+  const validation: UserValidationResult = validateUserStatus(isUserExist);
+  if (!validation.isValid) {
+    throw new AppError(statusCode.BAD_REQUEST, validation.message as string);
   }
 
   const jwtPayload = {

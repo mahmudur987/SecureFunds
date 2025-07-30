@@ -2,6 +2,8 @@
 import mongoose from "mongoose";
 import app from "./app";
 import { envVariables } from "./app/config/env.config";
+import { seedAdmin } from "./app/utils/seedSuperAdmin";
+
 const port = 5000;
 
 const uri = envVariables.DB_URL;
@@ -15,6 +17,7 @@ const startServer = async () => {
   }
 };
 (() => {
+  seedAdmin();
   startServer();
 })();
 const server = app.listen(port, () => {
