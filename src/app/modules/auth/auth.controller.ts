@@ -12,54 +12,23 @@ import passport from "passport";
 
 const credentialLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate("local", (err: any, user: any, info: any) => {
-      if (err) {
-        return next(new AppError(500, err.message));
-      }
-      if (!user) {
-        return next(new AppError(500, info.message));
-      }
+    const result = await authServices.credentialLogin(req.body);
 
-      const result = createUserToken(user);
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: false,
+    });
+    res.cookie("accessToken", result.accessToken, {
+      httpOnly: true,
+      secure: false,
+    });
 
-      res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
-        secure: false,
-      });
-      res.cookie("accessToken", result.accessToken, {
-        httpOnly: true,
-        secure: false,
-      });
-
-      sendResponse(res, {
-        statusCode: statusCode.CREATED,
-        success: true,
-        message: "Login successfully",
-        data: {
-          accessToken: result.accessToken,
-          refreshToken: result.refreshToken,
-          user,
-        },
-      });
-    })(req, res, next);
-
-    // const result = await authServices.credentialLogin(req.body);
-
-    // res.cookie("refreshToken", result.refreshToken, {
-    //   httpOnly: true,
-    //   secure: false,
-    // });
-    // res.cookie("accessToken", result.accessToken, {
-    //   httpOnly: true,
-    //   secure: false,
-    // });
-
-    // sendResponse(res, {
-    //   statusCode: statusCode.CREATED,
-    //   success: true,
-    //   message: "Login successfully",
-    //   data: result,
-    // });
+    sendResponse(res, {
+      statusCode: statusCode.CREATED,
+      success: true,
+      message: "Login successfully",
+      data: result,
+    });
   }
 );
 const getNewAccessToken = catchAsync(

@@ -42,6 +42,10 @@ const credentialLogin = async (payload: Partial<IUSER>) => {
 
   const Token = createUserToken(jwtPayload);
 
+  isUserExist.loginAttempts = (Number(isUserExist.loginAttempts) as number) + 1;
+  isUserExist.lastLogin = new Date();
+  await isUserExist.save();
+
   return {
     accessToken: Token.accessToken,
     refreshToken: Token.refreshToken,
