@@ -64,12 +64,24 @@ const getAllTransaction = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const query = req.query;
     const result = await transactionServices.getAllTransaction(
-      query as unknown as string
+      query as Record<string, string>
     );
     sendResponse(res, {
       statusCode: statusCode.CREATED,
       success: true,
-      message: "Add Money done successfully",
+      message: "transaction retrieved successfully",
+      data: result,
+    });
+  }
+);
+const getUserTransaction = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const result = await transactionServices.getUserTransaction(decodedToken);
+    sendResponse(res, {
+      statusCode: statusCode.CREATED,
+      success: true,
+      message: "transaction retrieved successfully",
       data: result,
     });
   }
@@ -81,4 +93,5 @@ export const transactionController = {
   cashOut,
   addMoney,
   getAllTransaction,
+  getUserTransaction,
 };

@@ -101,7 +101,7 @@ export const updateUserZodSchema = z.object({
     })
     .optional(),
 
-  Status: z
+  status: z
     .enum(Object.values(Status) as [string], {
       invalid_type_error: "Status must be one of the allowed values.",
     })

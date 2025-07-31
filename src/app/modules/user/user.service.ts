@@ -1,7 +1,6 @@
-import { JwtPayload } from "jsonwebtoken";
 import AppError from "../../errorHandler/AppError";
 import statusCode from "http-status-codes";
-import { IAuthProvider, IUSER, Role } from "./user.interface";
+import { IAuthProvider, IUSER } from "./user.interface";
 import { User } from "./user.model";
 import bcrypt from "bcryptjs";
 import { Wallet } from "../wallet/wallet.model";
@@ -53,45 +52,15 @@ export const createUser = async (
   };
 };
 
-const getAllUsers = async () => {
-  const result = await User.find({}).populate("wallet");
+const getAllUsers = async (query: Record<string, string> = {}) => {
+  const result = await User.find(query).populate("wallet");
   return result;
 };
 
-const updateUser = async (
-  userId: string,
-  payload: Partial<IUSER>,
-  decodedToken: JwtPayload
-) => {
+const updateUser = async (userId: string, payload: Partial<IUSER>) => {
   const isUserExist = await User.findById(userId);
-  console.log(
-    (isUserExist?.email !== decodedToken.email &&
-      decodedToken.role !== Role.ADMIN) ||
-      Role.SUPER_ADMIN
-  );
-  if (
-    isUserExist?.email !== decodedToken.email &&
-    (decodedToken.role !== Role.ADMIN || Role.SUPER_ADMIN)
-  ) {
-    throw new AppError(statusCode.FORBIDDEN, "Ypu have no access for doing it");
-  }
-  if (payload.role) {
-    if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-      throw new AppError(statusCode.FORBIDDEN, "no access");
-    }
-    if (payload.role === Role.SUPER_ADMIN && decodedToken.role === Role.ADMIN) {
-      throw new AppError(
-        statusCode.FORBIDDEN,
-        "Only Super Admin can Make Super Admin"
-      );
-    }
-  }
-  if (payload.isActive || payload.isDeleted || payload.isVerified) {
-    if (decodedToken.role === Role.USER || decodedToken.role === Role.GUIDE) {
-      throw new AppError(statusCode.FORBIDDEN, "no access");
-    }
-  }
-
+  if (!isUserExist) throw new AppError(statusCode.NOT_FOUND, "User not found.");
+  console.log(payload);
   const result = await User.findByIdAndUpdate(userId, payload, {
     new: true,
     runValidators: true,

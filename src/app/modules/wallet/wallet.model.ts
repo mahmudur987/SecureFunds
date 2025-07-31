@@ -1,11 +1,15 @@
-import { model, Schema, Types } from "mongoose";
-import { IWallet } from "./wallet.interface";
+import { model, Schema } from "mongoose";
+import { IWallet, WalletStatus } from "./wallet.interface";
 
 export const walletSchema = new Schema<IWallet>(
   {
-    userId: { type: Types.ObjectId, ref: "User", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     balance: { type: Number, require: true, default: 0 },
-    isBlocked: { type: Boolean, default: false },
+    status: {
+      type: String,
+      enum: Object.values(WalletStatus),
+      default: WalletStatus.PENDING,
+    },
   },
   { versionKey: false, timestamps: true }
 );

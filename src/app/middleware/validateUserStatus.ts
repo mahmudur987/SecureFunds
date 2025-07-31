@@ -1,4 +1,5 @@
 import { IUSER, Status } from "../modules/user/user.interface";
+import { IWallet, WalletStatus } from "../modules/wallet/wallet.interface";
 
 export interface UserValidationResult {
   isValid: boolean;
@@ -52,6 +53,43 @@ export const validateUserStatus = (
     return {
       isValid: false,
       message: "User phone is not verified",
+      statusCode: 400,
+    };
+  }
+
+  return {
+    isValid: true,
+  };
+};
+
+export const validateWalletStatus = (
+  wallet: IWallet | null
+): UserValidationResult => {
+  if (!wallet) {
+    return {
+      isValid: false,
+      message: "Wallet does not exist",
+      statusCode: 400,
+    };
+  }
+  if (wallet.status === WalletStatus.BLOCKED) {
+    return {
+      isValid: false,
+      message: "Wallet is blocked",
+      statusCode: 400,
+    };
+  }
+  if (wallet.status === WalletStatus.SUSPENDED) {
+    return {
+      isValid: false,
+      message: "Wallet is suspended",
+      statusCode: 400,
+    };
+  }
+  if (wallet.status === WalletStatus.PENDING) {
+    return {
+      isValid: false,
+      message: "Wallet is pending wait for admin approval",
       statusCode: 400,
     };
   }

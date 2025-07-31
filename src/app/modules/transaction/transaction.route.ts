@@ -3,6 +3,7 @@ import { CheckRole } from "../../middleware/checkRole";
 import { transactionController } from "./transaction.controller";
 import { validateRequest } from "../../middleware/validateRequest";
 import { transactionValidationSchema } from "./transaction.validate";
+import { Role } from "../user/user.interface";
 
 const router = Router();
 
@@ -45,5 +46,16 @@ router.post(
 // admin to agent addMoney
 
 router.post("/addBalance", CheckRole("ADMIN"));
+
+// get all transaction
+router.get("/", CheckRole("ADMIN"), transactionController.getAllTransaction);
+
+//get  user transaction
+
+router.get(
+  "/user-transaction",
+  CheckRole(Role.USER, Role.AGENT, Role.ADMIN),
+  transactionController.getUserTransaction
+);
 
 export const transactionRoute = router;

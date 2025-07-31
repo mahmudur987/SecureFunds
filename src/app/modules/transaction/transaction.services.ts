@@ -8,6 +8,27 @@ import AppError from "../../errorHandler/AppError";
 import { Wallet } from "../wallet/wallet.model";
 import mongoose, { ObjectId } from "mongoose";
 import { Role } from "../user/user.interface";
+import {
+  UserValidationResult,
+  validateWalletStatus,
+} from "../../middleware/validateUserStatus";
+import { IWallet } from "../wallet/wallet.interface";
+
+export const commission = 0.015;
+export const transactionFee = 0.017;
+
+const validateAndThrowIfInvalidWallet = (
+  wallet: IWallet | null,
+  validationFunction: (wallet: IWallet | null) => UserValidationResult
+) => {
+  const validationResult = validationFunction(wallet);
+  if (!validationResult.isValid) {
+    throw new AppError(
+      validationResult.statusCode as number,
+      validationResult.message as string
+    );
+  }
+};
 
 // user to user send money
 const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
@@ -54,8 +75,15 @@ const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
       );
     }
 
+    validateAndThrowIfInvalidWallet(senderUserWallet, validateWalletStatus);
+    validateAndThrowIfInvalidWallet(receiverUserWallet, validateWalletStatus);
+
     // Update balances
-    senderUserWallet.balance -= Number(data.amount);
+
+    const transactionFeeAmount =
+      Number(data.amount) * Number(transactionFee.toFixed(2));
+
+    senderUserWallet.balance -= Number(data.amount) + transactionFeeAmount;
     receiverUserWallet.balance += Number(data.amount);
 
     await senderUserWallet.save({ session });
@@ -65,6 +93,9 @@ const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
     const transactionData: Transaction = {
       transactionType: data.transactionType,
       amount: data.amount,
+      transactionFeeAmount,
+      commissionAmount: 0,
+      finalAmount: Number(data.amount) + transactionFeeAmount,
       fromUserId: decodedToken._id,
       toUserId: data.toUserId,
       agentId: data.agentId ?? null,
@@ -130,9 +161,15 @@ const cashIn = async (decodedToken: JwtPayload, data: Transaction) => {
         "Receiver User Wallet not found."
       );
     }
-
+    validateAndThrowIfInvalidWallet(senderUserWallet, validateWalletStatus);
+    validateAndThrowIfInvalidWallet(receiverUserWallet, validateWalletStatus);
     // Update balances
+
+    const commissionAmount =
+      Number(data.amount) * Number(commission.toFixed(2));
+
     senderUserWallet.balance -= Number(data.amount);
+    senderUserWallet.balance += commissionAmount;
     receiverUserWallet.balance += Number(data.amount);
 
     await senderUserWallet.save({ session });
@@ -142,6 +179,9 @@ const cashIn = async (decodedToken: JwtPayload, data: Transaction) => {
     const transactionData: Transaction = {
       transactionType: data.transactionType,
       amount: data.amount,
+      transactionFeeAmount: 0,
+      commissionAmount,
+      finalAmount: senderUserWallet.balance,
       fromUserId: decodedToken._id,
       toUserId: data.toUserId,
       agentId: senderUser._id ?? null,
@@ -208,10 +248,16 @@ const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
         "Receiver User Wallet not found."
       );
     }
-
+    validateAndThrowIfInvalidWallet(senderUserWallet, validateWalletStatus);
+    validateAndThrowIfInvalidWallet(receiverUserWallet, validateWalletStatus);
     // Update balances
-    senderUserWallet.balance -= Number(data.amount);
-    receiverUserWallet.balance += Number(data.amount);
+    const transactionFeeAmount =
+      Number(data.amount) * Number(transactionFee.toFixed(2));
+    const commissionAmount =
+      Number(data.amount) * Number(commission.toFixed(2));
+
+    senderUserWallet.balance -= Number(data.amount) + transactionFeeAmount;
+    receiverUserWallet.balance += Number(data.amount) + commissionAmount;
 
     await senderUserWallet.save({ session });
     await receiverUserWallet.save({ session });
@@ -219,6 +265,9 @@ const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
     // Create transaction record
     const transactionData: Transaction = {
       transactionType: data.transactionType,
+      transactionFeeAmount,
+      commissionAmount,
+      finalAmount: Number(data.amount) + transactionFeeAmount,
       amount: data.amount,
       fromUserId: decodedToken._id,
       toUserId: data.toUserId,
@@ -261,6 +310,7 @@ const addMoney = async (decodedToken: JwtPayload, data: Transaction) => {
     throw new AppError(statusCode.NOT_FOUND, "Receiver User Wallet not found.");
   }
 
+  validateAndThrowIfInvalidWallet(receiverUserWallet, validateWalletStatus);
   receiverUserWallet.balance += Number(data.amount);
 
   await receiverUserWallet.save({ session });
@@ -283,9 +333,33 @@ const addMoney = async (decodedToken: JwtPayload, data: Transaction) => {
   return result[0];
 };
 
-const getAllTransaction = async (query: string) => {
-  const result = await TransactionModel.find();
-  return result;
+const getAllTransaction = async (query: Record<string, string>) => {
+  const userId = query.userId;
+
+  const result = await TransactionModel.find({
+    $or: [{ fromUserId: userId }, { toUserId: userId }, { agentId: userId }],
+  })
+    .populate("fromUserId", "name email phone role")
+    .populate("toUserId", "name email phone role")
+    .populate("agentId", "name email phone role")
+    .sort({ createdAt: -1 })
+    .exec();
+
+  return { count: result.length, data: result };
+};
+const getUserTransaction = async (decodedToken: JwtPayload) => {
+  const userId = decodedToken._id;
+
+  const result = await TransactionModel.find({
+    $or: [{ fromUserId: userId }, { toUserId: userId }, { agentId: userId }],
+  })
+    .populate("fromUserId", "name email phone role")
+    .populate("toUserId", "name email phone role")
+    .populate("agentId", "name email phone role")
+    .sort({ createdAt: -1 })
+    .exec();
+
+  return { count: result.length, data: result };
 };
 
 export const transactionServices = {
@@ -294,4 +368,5 @@ export const transactionServices = {
   cashOut,
   addMoney,
   getAllTransaction,
+  getUserTransaction,
 };
