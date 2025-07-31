@@ -1,55 +1,65 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import AppError from "../../errorHandler/AppError";
 import statusCode from "http-status-codes";
 import { IAuthProvider, IUSER } from "./user.interface";
 import { User } from "./user.model";
 import bcrypt from "bcryptjs";
 import { Wallet } from "../wallet/wallet.model";
-export const createUser = async (
-  payload: IUSER,
-  session: mongoose.ClientSession
-) => {
+import mongoose from "mongoose";
+
+export const createUser = async (payload: IUSER) => {
   const { email, phone, password, ...rest } = payload;
-  console.log(phone);
+
   if (!phone || !password) {
     throw new AppError(400, "Provide your phone and password");
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  const alreadyPhoneExist = await User.findOne({ phone }).session(session);
-  if (alreadyPhoneExist) throw new AppError(400, "Phone already exists");
+    const alreadyPhoneExist = await User.findOne({ phone }).session(session);
+    if (alreadyPhoneExist) throw new AppError(400, "Phone already exists");
 
-  const alreadyEmailExist = await User.findOne({ email }).session(session);
-  if (alreadyEmailExist) throw new AppError(400, "Email already exists");
+    const alreadyEmailExist = await User.findOne({ email }).session(session);
+    if (alreadyEmailExist) throw new AppError(400, "Email already exists");
 
-  const authProvider: IAuthProvider = {
-    provider: "credential",
-    providerId: phone,
-  };
+    const authProvider: IAuthProvider = {
+      provider: "credential",
+      providerId: phone,
+    };
 
-  const sendData = {
-    ...rest,
-    email,
-    lastLogin: null,
-    phone,
-    auths: [authProvider],
-    password: hashedPassword,
-  };
+    const sendData = {
+      ...rest,
+      email,
+      lastLogin: null,
+      phone,
+      auths: [authProvider],
+      password: hashedPassword,
+    };
 
-  const user = await User.create([sendData], { session });
-  const walletData = {
-    userId: user[0]._id,
-    balance: 50,
-    isBlocked: false,
-  };
+    const user = await User.create([sendData], { session });
+    const walletData = {
+      userId: user[0]._id,
+      balance: 50,
+      isBlocked: false,
+    };
 
-  const wallet = await Wallet.create([walletData], { session });
-  user[0].wallet = wallet[0]._id;
-  user[0].save();
-  return {
-    user: user[0],
-    wallet: wallet[0],
-  };
+    const wallet = await Wallet.create([walletData], { session });
+    user[0].wallet = wallet[0]._id;
+    await user[0].save({ session });
+    await session.commitTransaction();
+    session.endSession();
+    return {
+      user: user[0],
+      wallet: wallet[0],
+    };
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    throw new AppError(400, error.message);
+  }
 };
 
 const getAllUsers = async (query: Record<string, string> = {}) => {

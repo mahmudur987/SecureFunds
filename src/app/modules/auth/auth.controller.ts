@@ -4,11 +4,6 @@ import statusCode from "http-status-codes";
 import { catchAsync } from "../../utils/catchAsynch";
 import { authServices } from "./auth.service";
 import sendResponse from "../../utils/sendResponse";
-import { JwtPayload } from "jsonwebtoken";
-import AppError from "../../errorHandler/AppError";
-import { createUserToken } from "../../utils/createUserToken";
-import { envVariables } from "../../config/env.config";
-import passport from "passport";
 
 const credentialLogin = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -47,90 +42,7 @@ const getNewAccessToken = catchAsync(
     });
   }
 );
-const changePassword = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user as JwtPayload;
-    const newPassword = req.body.newPassword;
-    const oldPassword = req.body.oldPassword;
-    const result = await authServices.changePassword(
-      oldPassword,
-      newPassword,
-      decodedToken
-    );
 
-    sendResponse(res, {
-      statusCode: statusCode.CREATED,
-      success: true,
-      message: "reset Password successfully",
-      data: result,
-    });
-  }
-);
-const setPassword = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const decodedToken = req.user as JwtPayload;
-    const newPassword = req.body.newPassword;
-    const result = await authServices.setPassword(
-      decodedToken._id,
-      newPassword
-    );
-
-    sendResponse(res, {
-      statusCode: statusCode.CREATED,
-      success: true,
-      message: "reset Password successfully",
-      data: result,
-    });
-  }
-);
-const forgetPassword = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { email } = req.body;
-    const result = await authServices.forgetPassword(email);
-
-    sendResponse(res, {
-      statusCode: statusCode.CREATED,
-      success: true,
-      message: "reset Password successfully",
-      data: result,
-    });
-  }
-);
-const resetPassword = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const payload = req.body;
-    const decodedToken = req.user as JwtPayload;
-
-    const result = await authServices.resetPassword(payload, decodedToken);
-
-    sendResponse(res, {
-      statusCode: statusCode.CREATED,
-      success: true,
-      message: "reset Password successfully",
-      data: result,
-    });
-  }
-);
-const googleCallbackController = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const user = req.user;
-
-    if (!user) {
-      throw new AppError(500, "user not found");
-    }
-    const Token = createUserToken(user);
-    res.cookie("refreshToken", Token.refreshToken, {
-      httpOnly: true,
-      secure: false,
-    });
-    res.cookie("accessToken", Token.accessToken, {
-      httpOnly: true,
-      secure: false,
-    });
-
-    res.redirect(envVariables.FRONT_END_URL);
-  }
-);
 const logOut = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     res.clearCookie("refreshToken", {
@@ -156,9 +68,4 @@ export const authController = {
   credentialLogin,
   getNewAccessToken,
   logOut,
-  changePassword,
-  googleCallbackController,
-  setPassword,
-  forgetPassword,
-  resetPassword,
 };

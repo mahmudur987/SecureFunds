@@ -1,5 +1,6 @@
 import { Query } from "mongoose";
-import { excludeField } from "../app/constants";
+
+const excludeField = ["page", "limit", "sort", "fields", "searchTerm"];
 
 export class QueryBuilder<T> {
   public modelQuery: Query<T[], T>;

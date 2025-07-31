@@ -2,7 +2,6 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-import passport from "passport";
 import expressSession from "express-session";
 // import "./config/passport";
 import { globalErrorHandler } from "./app/middleware/globalError";
@@ -20,8 +19,7 @@ app.use(
     saveUninitialized: false,
   })
 );
-app.use(passport.initialize());
-app.use(passport.session());
+
 app.use(cookieParser());
 app.use(cors());
 app.use(express.urlencoded({ extended: true }));

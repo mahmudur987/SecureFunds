@@ -6,7 +6,7 @@ import statusCode from "http-status-codes";
 import { User } from "../user/user.model";
 import AppError from "../../errorHandler/AppError";
 import { Wallet } from "../wallet/wallet.model";
-import mongoose, { ObjectId } from "mongoose";
+import mongoose from "mongoose";
 import { Role } from "../user/user.interface";
 import {
   UserValidationResult,

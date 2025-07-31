@@ -1,5 +1,9 @@
 import mongoose from "mongoose";
-import { TransactionStatus, TransactionType } from "./transaction.interface";
+import {
+  Transaction,
+  TransactionStatus,
+  TransactionType,
+} from "./transaction.interface";
 
 export const transactionSchema = new mongoose.Schema<Transaction>(
   {
