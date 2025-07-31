@@ -15,9 +15,9 @@ export enum TransactionStatus {
 export interface Transaction {
   transactionType: TransactionType;
   amount: number;
-  fromUserId: Types.ObjectId;
-  toUserId: Types.ObjectId;
-  agentId: Types.ObjectId;
+  fromUserId?: Types.ObjectId | null;
+  toUserId?: Types.ObjectId;
+  agentId?: Types.ObjectId | null;
   transactionStatus: TransactionStatus;
   description: string;
 }

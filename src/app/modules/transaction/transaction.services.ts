@@ -163,7 +163,135 @@ const cashIn = async (decodedToken: JwtPayload, data: Transaction) => {
     throw error;
   }
 };
+
+// user to agent cashOut
+const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const senderUser = await User.findById(decodedToken._id).session(session);
+    if (!senderUser) {
+      throw new AppError(statusCode.NOT_FOUND, "Sender User not found.");
+    }
+    if (senderUser.role !== Role.USER) {
+      throw new AppError(statusCode.BAD_REQUEST, "Only users can cash Out.");
+    }
+
+    const senderUserWallet = await Wallet.findOne({
+      userId: decodedToken._id,
+    }).session(session);
+    if (!senderUserWallet) {
+      throw new AppError(statusCode.NOT_FOUND, "Sender User Wallet not found.");
+    }
+
+    if (Number(senderUserWallet.balance) < data.amount) {
+      throw new AppError(statusCode.BAD_REQUEST, "Insufficient balance.");
+    }
+
+    const receiverUser = await User.findById(data.toUserId).session(session);
+    if (!receiverUser) {
+      throw new AppError(statusCode.NOT_FOUND, "Receiver User not found.");
+    }
+    if (receiverUser.role !== Role.AGENT) {
+      throw new AppError(
+        statusCode.BAD_REQUEST,
+        "You can Cash out to agents only."
+      );
+    }
+    const receiverUserWallet = await Wallet.findOne({
+      userId: data.toUserId,
+    }).session(session);
+    if (!receiverUserWallet) {
+      throw new AppError(
+        statusCode.NOT_FOUND,
+        "Receiver User Wallet not found."
+      );
+    }
+
+    // Update balances
+    senderUserWallet.balance -= Number(data.amount);
+    receiverUserWallet.balance += Number(data.amount);
+
+    await senderUserWallet.save({ session });
+    await receiverUserWallet.save({ session });
+
+    // Create transaction record
+    const transactionData: Transaction = {
+      transactionType: data.transactionType,
+      amount: data.amount,
+      fromUserId: decodedToken._id,
+      toUserId: data.toUserId,
+      agentId: senderUser._id ?? null,
+      transactionStatus: TransactionStatus.success,
+      description: data.description,
+    };
+
+    const result = await TransactionModel.create([transactionData], {
+      session,
+    });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return result[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
+
+// add -money user
+const addMoney = async (decodedToken: JwtPayload, data: Transaction) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  const receiverUser = await User.findById(decodedToken._id).session(session);
+  if (!receiverUser) {
+    throw new AppError(statusCode.NOT_FOUND, "Receiver User not found.");
+  }
+  if (receiverUser.role !== Role.USER) {
+    throw new AppError(statusCode.BAD_REQUEST, "You cant add money .");
+  }
+  const receiverUserWallet = await Wallet.findOne({
+    userId: decodedToken._id,
+  }).session(session);
+  if (!receiverUserWallet) {
+    throw new AppError(statusCode.NOT_FOUND, "Receiver User Wallet not found.");
+  }
+
+  receiverUserWallet.balance += Number(data.amount);
+
+  await receiverUserWallet.save({ session });
+  const transactionData: Transaction = {
+    transactionType: data.transactionType,
+    amount: data.amount,
+    fromUserId: null,
+    toUserId: decodedToken._id ?? null,
+    agentId: null,
+    transactionStatus: TransactionStatus.success,
+    description: data.description,
+  };
+  const result = await TransactionModel.create([transactionData], {
+    session,
+  });
+
+  await session.commitTransaction();
+  session.endSession();
+
+  return result[0];
+};
+
+const getAllTransaction = async (query: string) => {
+  const result = await TransactionModel.find();
+  return result;
+};
+
 export const transactionServices = {
   sendMoney,
   cashIn,
+  cashOut,
+  addMoney,
+  getAllTransaction,
 };

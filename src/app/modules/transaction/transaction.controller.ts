@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { catchAsync } from "../../utils/catchAsynch";
 import statusCode from "http-status-codes";
 import sendResponse from "../../utils/sendResponse";
@@ -13,7 +14,7 @@ const sendMoney = catchAsync(
     sendResponse(res, {
       statusCode: statusCode.CREATED,
       success: true,
-      message: "TSend Money done successfully",
+      message: "Send Money done successfully",
       data: result,
     });
   }
@@ -31,7 +32,53 @@ const cashIn = catchAsync(
     });
   }
 );
+
+// cash out
+const cashOut = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+
+    const result = await transactionServices.cashOut(decodedToken, req.body);
+    sendResponse(res, {
+      statusCode: statusCode.CREATED,
+      success: true,
+      message: "Cash Out done successfully",
+      data: result,
+    });
+  }
+);
+const addMoney = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const result = await transactionServices.addMoney(decodedToken, req.body);
+    sendResponse(res, {
+      statusCode: statusCode.CREATED,
+      success: true,
+      message: "Add Money done successfully",
+      data: result,
+    });
+  }
+);
+
+const getAllTransaction = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const query = req.query;
+    const result = await transactionServices.getAllTransaction(
+      query as unknown as string
+    );
+    sendResponse(res, {
+      statusCode: statusCode.CREATED,
+      success: true,
+      message: "Add Money done successfully",
+      data: result,
+    });
+  }
+);
+
 export const transactionController = {
   sendMoney,
   cashIn,
+  cashOut,
+  addMoney,
+  getAllTransaction,
 };

@@ -16,7 +16,8 @@ export const transactionValidationSchema = z.object({
 
   toUserId: z
     .string({ invalid_type_error: "To User ID must be a valid string." })
-    .nonempty({ message: "To User ID is required." }),
+    .nonempty({ message: "To User ID is required." })
+    .optional(),
 
   agentId: z
     .string({ invalid_type_error: "Agent ID must be a valid string." })

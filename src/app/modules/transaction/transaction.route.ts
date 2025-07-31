@@ -17,7 +17,12 @@ router.post(
 
 // user to agent cashOut
 
-router.post("/cashOut", CheckRole("USER"));
+router.post(
+  "/cashOut",
+  validateRequest(transactionValidationSchema),
+  CheckRole("USER"),
+  transactionController.cashOut
+);
 
 // agent to user cashIn
 
@@ -30,7 +35,12 @@ router.post(
 
 // bank to user addMoney
 
-router.post("/addMoney", CheckRole("ADMIN"));
+router.post(
+  "/addMoney",
+  validateRequest(transactionValidationSchema),
+  CheckRole("USER"),
+  transactionController.addMoney
+);
 
 // admin to agent addMoney
 
