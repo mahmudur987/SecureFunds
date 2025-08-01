@@ -6,6 +6,7 @@ import { User } from "./user.model";
 import bcrypt from "bcryptjs";
 import { Wallet } from "../wallet/wallet.model";
 import mongoose from "mongoose";
+import { JwtPayload } from "jsonwebtoken";
 
 export const createUser = async (payload: IUSER) => {
   const { email, phone, password, ...rest } = payload;
@@ -66,6 +67,12 @@ const getAllUsers = async (query: Record<string, string> = {}) => {
   const result = await User.find(query).populate("wallet");
   return result;
 };
+const getSingleUser = async (decodedToken: JwtPayload) => {
+  const result = await User.findById(decodedToken._id)
+    .lean()
+    .populate("wallet");
+  return result;
+};
 
 const updateUser = async (userId: string, payload: Partial<IUSER>) => {
   const isUserExist = await User.findById(userId);
@@ -81,5 +88,6 @@ const updateUser = async (userId: string, payload: Partial<IUSER>) => {
 export const useServices = {
   createUser,
   getAllUsers,
+  getSingleUser,
   updateUser,
 };
