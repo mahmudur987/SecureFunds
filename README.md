@@ -16,6 +16,13 @@ A secure, modular, and role-based backend API for a digital wallet system inspir
 
 ---
 
+## 🚀 credential
+
+- Admin Phone: 01671706882
+- Admin Password : 12345678
+
+---
+
 ## 🛠 Tech Stack
 
 - **Backend:** Express.js, Node.js ,Express js ,Type script
@@ -47,9 +54,10 @@ Create a `.env` file in the root with the following structure:
 
 ```env
 PORT=5000
-DATABASE_URL=mongodb://localhost:27017/securefund
+DATABASE_URL=mongodb+srv://SecureFunds:SecureFunds@cluster0.ddhlldi.mongodb.net/SecureFunds?retryWrites=true&w=majority&appName=Cluster0
 NODE_ENV=development
 SUPER_ADMIN_EMAIL=super@gmail.com
+SUPER_ADMIN_PHONE=01671706882
 SUPER_ADMIN_PASSWORD=12345678
 ACCESS_TOKEN_SECRET=Ph-tour-Management Backend
 ACCESS_TOKEN_EXPIRES=1d

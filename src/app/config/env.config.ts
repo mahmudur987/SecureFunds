@@ -11,6 +11,7 @@ const requiredEnvVariables = [
   "ACCESS_TOKEN_EXPIRES",
   "REFRESH_TOKEN_SECRET",
   "REFRESH_TOKEN_EXPIRES",
+  "SUPER_ADMIN_PHONE",
 ] as const;
 
 type RequiredEnv = (typeof requiredEnvVariables)[number];
