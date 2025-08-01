@@ -1,0 +1,446 @@
+{
+	"info": {
+		"_postman_id": "e81fb89b-038f-4c53-a61f-65b122d6f077",
+		"name": "SecureFunds Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27533958"
+	},
+	"item": [
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"John13 Doe\",\n    \"email\": \"john13@gmail.com\",\n    \"password\": \"A@1234567\",\n    \"phone\": \"01712345613\",\n    \"address\": \"Dhaka, Bangladesh\",\n    \"role\": \"AGENT\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/create-user",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"create-user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update user",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiIEFkbWluIiwiZW1haWwiOiJzdXBlckBnbWFpbC5jb20iLCJfaWQiOiI2ODhiMzkyNTEzOGM2YThhYWIyZDg3OTgiLCJwaG9uZSI6IjAxNjcxNzA2ODgyIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzOTY0NTE5LCJleHAiOjE3NTQwNTA5MTl9.HRGIcdTtObh79lKIBMah3VB-knN-c9Nwzt9BwgRWUy0",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"ACTIVE\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/user/688b39e480d9ea25be46e450",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"688b39e480d9ea25be46e450"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get all user",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objExIERvZSIsImVtYWlsIjoiam9objExQGdtYWlsLmNvbSIsIl9pZCI6IjY4OGIzOWU0ODBkOWVhMjViZTQ2ZTQ1MCIsInBob25lIjoiMDE3MTIzNDU2MTEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1NDAxODAwNSwiZXhwIjoxNzU0MTA0NDA1fQ.w2Aj2eNunLYclBqeRjBg1wItwAETHEG2lGGh8Vo-fXo",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/user",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get profile",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objExIERvZSIsImVtYWlsIjoiam9objExQGdtYWlsLmNvbSIsIl9pZCI6IjY4OGIzOWU0ODBkOWVhMjViZTQ2ZTQ1MCIsInBob25lIjoiMDE3MTIzNDU2MTEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1NDAxODAwNSwiZXhwIjoxNzU0MTA0NDA1fQ.w2Aj2eNunLYclBqeRjBg1wItwAETHEG2lGGh8Vo-fXo",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseURL}}/user/profile",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "auth",
+			"item": [
+				{
+					"name": "login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"phone\": \"01712345611\",\n    \"password\": \"A@1234567\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/auth/login",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "transaction",
+			"item": [
+				{
+					"name": "send money (user-user)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objExIERvZSIsImVtYWlsIjoiam9objExQGdtYWlsLmNvbSIsIl9pZCI6IjY4OGIzOWU0ODBkOWVhMjViZTQ2ZTQ1MCIsInBob25lIjoiMDE3MTIzNDU2MTEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzk2MTIyNywiZXhwIjoxNzU0MDQ3NjI3fQ.jTN1sohGUJzSoYm05SHbcCt7fcsJbzK_KY-8U69Z6U4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transactionType\": \"Send-Money\",\n    \"amount\": 100,\n    \"toUserId\": \"688b3b475054be53be925886\",\n    \"description\": \"Transaction for testing purpose  hi\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/transaction/send-money",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"transaction",
+								"send-money"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cashIn (agent-user)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objEzIERvZSIsImVtYWlsIjoiam9objEzQGdtYWlsLmNvbSIsIl9pZCI6IjY4OGIzYjc5NTA1NGJlNTNiZTkyNTg4ZiIsInBob25lIjoiMDE3MTIzNDU2MTMiLCJyb2xlIjoiQUdFTlQiLCJpYXQiOjE3NTM5NjI0NTYsImV4cCI6MTc1NDA0ODg1Nn0.4_3YpgK5YVPOwtgkhClwAbST0kXdb8FXD9yCRNiMVic",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transactionType\": \"CashIn\",\n    \"amount\": 100,\n    \"toUserId\": \"688b39e480d9ea25be46e450\",\n    \"description\": \"Transaction for testing purpose  hi\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/transaction/cashIn",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"transaction",
+								"cashIn"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "cashOut  (user-agent)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objExIERvZSIsImVtYWlsIjoiam9objExQGdtYWlsLmNvbSIsIl9pZCI6IjY4OGIzOWU0ODBkOWVhMjViZTQ2ZTQ1MCIsInBob25lIjoiMDE3MTIzNDU2MTEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzk2MTkxNywiZXhwIjoxNzU0MDQ4MzE3fQ.VvBwD4swjfroxoiqw_rRs3kt0oRH8SohPtUrCzWnAFg",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transactionType\": \"CashOut\",\n    \"amount\": 100,\n    \"toUserId\": \"688b3b795054be53be92588f\",\n    \"description\": \" cashout  Transaction for testing purpose  \"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/transaction/cashOut",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"transaction",
+								"cashOut"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add money bank-user",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objMgRG9lIiwiZW1haWwiOiJqb2huM0BnbWFpbC5jb20iLCJfaWQiOiI2ODhhNTJlMzNjYWQ2MGFkYWZmZmY1NDAiLCJwaG9uZSI6IjAxNzEyMzQ1Njc3Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM5MzAwNzAsImV4cCI6MTc1NDAxNjQ3MH0.2yZygsAmZaY_JAywdmACkVwfwShnosvTogefKq8Qdp4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transactionType\": \"Add-Money\",\n    \"amount\": 100,\n    \"description\": \" Add-Money Transaction for testing purpose  \"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/transaction/addMoney",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"transaction",
+								"addMoney"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "New Request",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "all transection",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objMgRG9lIiwiZW1haWwiOiJqb2huM0BnbWFpbC5jb20iLCJfaWQiOiI2ODhhNTJlMzNjYWQ2MGFkYWZmZmY1NDAiLCJwaG9uZSI6IjAxNzEyMzQ1Njc3Iiwicm9sZSI6IlVTRVIiLCJpYXQiOjE3NTM5MzAwNzAsImV4cCI6MTc1NDAxNjQ3MH0.2yZygsAmZaY_JAywdmACkVwfwShnosvTogefKq8Qdp4",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"transactionType\": \"Add-Money\",\n    \"amount\": 100,\n    \"description\": \" Add-Money Transaction for testing purpose  \"\n}"
+						},
+						"url": {
+							"raw": "{{baseURL}}/transaction?userId=688a2d286ff5a3a40437d9b0",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"transaction"
+							],
+							"query": [
+								{
+									"key": "userId",
+									"value": "688a2d286ff5a3a40437d9b0"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "all transection of user",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9objExIERvZSIsImVtYWlsIjoiam9objExQGdtYWlsLmNvbSIsIl9pZCI6IjY4OGIyZWMxMTdjMmQ3Mjg0MjQzMTM3ZiIsInBob25lIjoiMDE3MTIzNDU2MTEiLCJyb2xlIjoiVVNFUiIsImlhdCI6MTc1Mzk1MTk1NCwiZXhwIjoxNzU0MDM4MzU0fQ.7-LyNYUxEIsjaFJ0JU7V48gbwH9CXFK9TkS1gClM7b0",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{baseURL}}/transaction/user-transaction",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"transaction",
+								"user-transaction"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "wallet",
+			"item": [
+				{
+					"name": "get all",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiIEFkbWluIiwiZW1haWwiOiJzdXBlckBnbWFpbC5jb20iLCJfaWQiOiI2ODhiMzkyNTEzOGM2YThhYWIyZDg3OTgiLCJwaG9uZSI6IjAxNjcxNzA2ODgyIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzOTY0NTE5LCJleHAiOjE3NTQwNTA5MTl9.HRGIcdTtObh79lKIBMah3VB-knN-c9Nwzt9BwgRWUy0",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \n    \"phone\": \"01712345678\",\n    \"password\": \"A@1234567\"\n}"
+						},
+						"url": {
+							"raw": "{{baseURL}}/wallet",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"wallet"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update wallet",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiIEFkbWluIiwiZW1haWwiOiJzdXBlckBnbWFpbC5jb20iLCJfaWQiOiI2ODhhMmJiY2E5NzE5Yzg1MGY1ODJjYTEiLCJwaG9uZSI6IjAxNjcxNzA2ODgyIiwicm9sZSI6IkFETUlOIiwiaWF0IjoxNzUzOTUyNTAzLCJleHAiOjE3NTQwMzg5MDN9.HVESE6D7nN272PBfSGW_zkaSlGoZC8AJ9tgXBEMl_dQ",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"BLOCKED\",\n    \"balance\": 50000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseURL}}/wallet/688b39e480d9ea25be46e450",
+							"host": [
+								"{{baseURL}}"
+							],
+							"path": [
+								"wallet",
+								"688b39e480d9ea25be46e450"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
