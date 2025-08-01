@@ -18,7 +18,7 @@ A secure, modular, and role-based backend API for a digital wallet system inspir
 
 ## 🛠 Tech Stack
 
-- **Backend:** Express.js, Node.js
+- **Backend:** Express.js, Node.js ,Express js ,Type script
 - **Database:** MongoDB + Mongoose
 - **Auth:** JWT + Bcrypt
 - **Validation:** Zod
