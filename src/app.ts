@@ -11,6 +11,12 @@ const app = express();
 
 // middleware
 app.use(express.json());
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://127.0.0.1:5173"], // frontend URLs
+    credentials: true, // allow cookies, sessions, auth headers
+  })
+);
 
 app.use(
   expressSession({
@@ -21,7 +27,6 @@ app.use(
 );
 
 app.use(cookieParser());
-app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use("/api/v1/", router);
 
