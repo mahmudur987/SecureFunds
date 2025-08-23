@@ -29,7 +29,8 @@ const getAllUsers = catchAsync(
       statusCode: statusCode.CREATED,
       success: true,
       message: "user retrieved successfully",
-      data: result,
+      meta: result.meta,
+      data: result.data,
     });
   }
 );

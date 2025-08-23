@@ -54,9 +54,7 @@ export const createUserZodSchema = z.object({
         "isPhoneVerified must be a boolean value (true or false).",
     })
     .optional(),
-  isActive: z
-    .enum([Status.ACTIVE, Status.BLOCKED, Status.SUSPENDED])
-    .optional(),
+  status: z.enum([Status.ACTIVE, Status.BLOCKED, Status.SUSPENDED]).optional(),
   isDeleted: z.boolean().optional(),
   loginAttempts: z.number().nonnegative().optional(),
   lastLogin: z.date().optional(),

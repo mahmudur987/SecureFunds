@@ -7,6 +7,7 @@ import bcrypt from "bcryptjs";
 import { Wallet } from "../wallet/wallet.model";
 import mongoose from "mongoose";
 import { JwtPayload } from "jsonwebtoken";
+import BuildQuery from "../../utils/QueryBuilder";
 
 export const createUser = async (payload: IUSER) => {
   const { email, phone, password, ...rest } = payload;
@@ -64,8 +65,14 @@ export const createUser = async (payload: IUSER) => {
 };
 
 const getAllUsers = async (query: Record<string, string> = {}) => {
-  const result = await User.find(query).populate("wallet");
-  return result;
+  const { data, meta } = await BuildQuery(User.find(), query, {
+    searchFields: ["name", "description"],
+  });
+
+  return {
+    data,
+    meta,
+  };
 };
 const getSingleUser = async (decodedToken: JwtPayload) => {
   const result = await User.findById(decodedToken._id)

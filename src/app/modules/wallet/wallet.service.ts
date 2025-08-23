@@ -1,12 +1,16 @@
+import BuildQuery from "../../utils/QueryBuilder";
 import { IWallet } from "./wallet.interface";
 import { Wallet } from "./wallet.model";
 
-const getAllWallet = async () => {
-  const wallet = await Wallet.find({}).populate(
-    "userId",
-    "name email phone role"
-  );
-  return { count: wallet.length, data: wallet };
+const getAllWallet = async (query: Record<string, string>) => {
+  const { data, meta } = await BuildQuery(Wallet.find(), query, {
+    searchFields: ["name", "description"],
+  });
+
+  return {
+    data,
+    meta,
+  };
 };
 
 const updateWallet = async (userId: string, data: Partial<IWallet>) => {
