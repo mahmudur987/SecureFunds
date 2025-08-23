@@ -14,7 +14,7 @@ import {
 export const jwtSecrete = "Ph-tour-Management Backend";
 const credentialLogin = async (payload: Partial<IUSER>) => {
   const { phone, password } = payload;
-  console.log(payload);
+
   const isUserExist = await User.findOne({ phone }).populate("wallet");
 
   if (!isUserExist) {
