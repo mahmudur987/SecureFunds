@@ -347,19 +347,65 @@ const getAllTransaction = async (query: Record<string, string>) => {
 
   return { count: result.length, data: result };
 };
-const getUserTransaction = async (decodedToken: JwtPayload) => {
-  const userId = decodedToken._id;
+const getUserTransaction = async (
+  decodedToken: JwtPayload,
+  query: Record<string, string>
+) => {
+  const { limit = 10, page = 1, searchTerm, sort = "-createdAt" } = query;
+  const userId = decodedToken?._id;
+  if (!userId) {
+    throw new AppError(500, "User Id is required but not provided.");
+  }
 
-  const result = await TransactionModel.find({
+  // ✅ Base filter: only transactions related to this user
+  const baseFilter = {
     $or: [{ fromUserId: userId }, { toUserId: userId }, { agentId: userId }],
-  })
+  };
+
+  // ✅ Add search condition if provided
+  let filter: any = { ...baseFilter };
+  if (searchTerm) {
+    filter = {
+      $and: [
+        baseFilter,
+        {
+          $or: [
+            { transactionId: { $regex: searchTerm, $options: "i" } },
+            { status: { $regex: searchTerm, $options: "i" } },
+            { amount: { $regex: searchTerm, $options: "i" } }, // if amount is stored as string
+          ],
+        },
+      ],
+    };
+  }
+
+  // ✅ Count total documents for pagination
+  const total = await TransactionModel.countDocuments(filter);
+
+  // ✅ Query with pagination + sorting
+  const result = await TransactionModel.find(filter)
     .populate("fromUserId", "name email phone role")
     .populate("toUserId", "name email phone role")
     .populate("agentId", "name email phone role")
-    .sort({ createdAt: -1 })
+    .sort(sort)
+    .skip((Number(page) - 1) * Number(limit))
+    .limit(Number(limit)) // <-- missing in your code
     .exec();
 
-  return { count: result.length, data: result };
+  if (!result) {
+    throw new AppError(400, "Error while retrieving user transactions.");
+  }
+
+  return {
+    meta: {
+      page: Number(page),
+      limit: Number(limit),
+      count: result.length, // count of items in current page
+      total,
+      totalPage: Math.ceil(total / Number(limit)),
+    },
+    data: result,
+  };
 };
 
 export const transactionServices = {

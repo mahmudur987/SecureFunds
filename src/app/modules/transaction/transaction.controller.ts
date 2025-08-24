@@ -77,12 +77,16 @@ const getAllTransaction = catchAsync(
 const getUserTransaction = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const decodedToken = req.user as JwtPayload;
-    const result = await transactionServices.getUserTransaction(decodedToken);
+    const result = await transactionServices.getUserTransaction(
+      decodedToken,
+      req.query
+    );
     sendResponse(res, {
       statusCode: statusCode.CREATED,
       success: true,
       message: "transaction retrieved successfully",
-      data: result,
+      data: result.data,
+      meta: result.count,
     });
   }
 );

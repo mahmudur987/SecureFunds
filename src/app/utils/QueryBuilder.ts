@@ -85,13 +85,20 @@ interface QueryOptions {
 export default async function BuildQuery<T>(
   modelQuery: Query<T[], T>,
   query: Record<string, any>,
-  options: QueryOptions = {}
+
+  searchFields: string[] = []
 ) {
   const {
-    searchFields = [],
-    excludeFields = ["page", "limit", "sort", "fields", "searchTerm"],
-  } = options;
-
+    excludeFields = [
+      "page",
+      "limit",
+      "sort",
+      "fields",
+      "searchTerm",
+      "populate",
+    ],
+  } = {} as QueryOptions;
+  console.log(query);
   // 1️⃣ Filter
   const filters = { ...query };
   excludeFields.forEach((field) => delete filters[field]);
@@ -117,16 +124,22 @@ export default async function BuildQuery<T>(
     modelQuery = modelQuery.select(fields);
   }
 
-  // 5️⃣ Pagination
+  // 5️⃣ Populate
+  if (query.populate) {
+    const populate = query.populate.split(",").join(" ");
+    modelQuery = modelQuery.populate(populate);
+  }
+
+  // 6️⃣ Pagination
   const page = Number(query.page) || 1;
   const limit = Number(query.limit) || 10;
   const skip = (page - 1) * limit;
   modelQuery = modelQuery.skip(skip).limit(limit);
 
-  // 6️⃣ Execute query
+  // 7️⃣ Execute query
   const data = await modelQuery;
 
-  // 7️⃣ Meta info
+  // 8️⃣ Meta info
   const total = await modelQuery.model.countDocuments(filters);
   const totalPage = Math.ceil(total / limit);
 
