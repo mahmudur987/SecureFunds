@@ -55,7 +55,11 @@ const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
       throw new AppError(statusCode.BAD_REQUEST, "Insufficient balance.");
     }
 
-    const receiverUser = await User.findById(data.toUserId).session(session);
+    const receiverUser = await User.findOne({
+      phone: data.toUserPhone,
+    }).session(session);
+
+    console.log(receiverUser, data);
     if (!receiverUser) {
       throw new AppError(statusCode.NOT_FOUND, "Receiver User not found.");
     }
@@ -66,7 +70,7 @@ const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
       );
     }
     const receiverUserWallet = await Wallet.findOne({
-      userId: data.toUserId,
+      userId: receiverUser._id,
     }).session(session);
     if (!receiverUserWallet) {
       throw new AppError(
@@ -97,7 +101,7 @@ const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
       commissionAmount: 0,
       finalAmount: Number(data.amount) + transactionFeeAmount,
       fromUserId: decodedToken._id,
-      toUserId: data.toUserId,
+      toUserId: receiverUser._id,
       agentId: data.agentId ?? null,
       transactionStatus: TransactionStatus.success,
       description: data.description,
@@ -351,18 +355,31 @@ const getUserTransaction = async (
   decodedToken: JwtPayload,
   query: Record<string, string>
 ) => {
-  const { limit = 10, page = 1, searchTerm, sort = "-createdAt" } = query;
+  const {
+    limit = 10,
+    page = 1,
+    searchTerm,
+    sort = "-createdAt",
+    startDate,
+    endDate,
+    ...rest
+  } = query;
   const userId = decodedToken?._id;
   if (!userId) {
     throw new AppError(500, "User Id is required but not provided.");
   }
 
   // ✅ Base filter: only transactions related to this user
-  const baseFilter = {
+  const baseFilter: any = {
     $or: [{ fromUserId: userId }, { toUserId: userId }, { agentId: userId }],
   };
 
-  // ✅ Add search condition if provided
+  // ✅ Extra filters from ...rest (transactionType, transactionStatus, etc.)
+  for (const [key, value] of Object.entries(rest)) {
+    if (value) baseFilter[key] = value;
+  }
+
+  // ✅ Search condition
   let filter: any = { ...baseFilter };
   if (searchTerm) {
     filter = {
@@ -370,11 +387,34 @@ const getUserTransaction = async (
         baseFilter,
         {
           $or: [
-            { transactionId: { $regex: searchTerm, $options: "i" } },
-            { status: { $regex: searchTerm, $options: "i" } },
-            { amount: { $regex: searchTerm, $options: "i" } }, // if amount is stored as string
+            { transactionType: { $regex: searchTerm, $options: "i" } },
+            { transactionStatus: { $regex: searchTerm, $options: "i" } },
+            { description: { $regex: searchTerm, $options: "i" } },
+            {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$_id" },
+                  regex: searchTerm,
+                  options: "i",
+                },
+              },
+            },
           ],
         },
+      ],
+    };
+  }
+
+  // ✅ Date range (strictly on createdAt)
+  if (startDate || endDate) {
+    const dateFilter: any = {};
+    if (startDate) dateFilter.$gte = new Date(startDate);
+    if (endDate) dateFilter.$lte = new Date(endDate);
+
+    filter = {
+      $and: [
+        filter,
+        { createdAt: dateFilter }, // 🔥 strict on createdAt
       ],
     };
   }
@@ -389,7 +429,7 @@ const getUserTransaction = async (
     .populate("agentId", "name email phone role")
     .sort(sort)
     .skip((Number(page) - 1) * Number(limit))
-    .limit(Number(limit)) // <-- missing in your code
+    .limit(Number(limit))
     .exec();
 
   if (!result) {
@@ -397,14 +437,14 @@ const getUserTransaction = async (
   }
 
   return {
+    data: result,
     meta: {
       page: Number(page),
       limit: Number(limit),
-      count: result.length, // count of items in current page
+      count: result.length,
       total,
       totalPage: Math.ceil(total / Number(limit)),
     },
-    data: result,
   };
 };
 

@@ -23,4 +23,5 @@ export interface Transaction {
   agentId?: Types.ObjectId | null;
   transactionStatus: TransactionStatus;
   description: string;
+  toUserPhone?: string;
 }
