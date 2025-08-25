@@ -15,7 +15,8 @@ import {
 import { IWallet } from "../wallet/wallet.interface";
 
 export const commission = 0.015;
-export const transactionFee = 0.017;
+export const transactionFeeToAgent = 0.017;
+export const transactionFeeToUser = 0.005;
 
 const validateAndThrowIfInvalidWallet = (
   wallet: IWallet | null,
@@ -85,7 +86,7 @@ const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
     // Update balances
 
     const transactionFeeAmount =
-      Number(data.amount) * Number(transactionFee.toFixed(2));
+      Number(data.amount) * Number(transactionFeeToUser);
 
     senderUserWallet.balance -= Number(data.amount) + transactionFeeAmount;
     receiverUserWallet.balance += Number(data.amount);
@@ -123,6 +124,8 @@ const sendMoney = async (decodedToken: JwtPayload, data: Transaction) => {
 };
 // agent to user cashIn
 const cashIn = async (decodedToken: JwtPayload, data: Transaction) => {
+  console.log(data);
+
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -146,7 +149,9 @@ const cashIn = async (decodedToken: JwtPayload, data: Transaction) => {
       throw new AppError(statusCode.BAD_REQUEST, "Insufficient balance.");
     }
 
-    const receiverUser = await User.findById(data.toUserId).session(session);
+    const receiverUser = await User.findOne({ phone: data.toUserPhone })
+      .lean()
+      .session(session);
     if (!receiverUser) {
       throw new AppError(statusCode.NOT_FOUND, "Receiver User not found.");
     }
@@ -157,7 +162,7 @@ const cashIn = async (decodedToken: JwtPayload, data: Transaction) => {
       );
     }
     const receiverUserWallet = await Wallet.findOne({
-      userId: data.toUserId,
+      userId: receiverUser._id,
     }).session(session);
     if (!receiverUserWallet) {
       throw new AppError(
@@ -187,7 +192,7 @@ const cashIn = async (decodedToken: JwtPayload, data: Transaction) => {
       commissionAmount,
       finalAmount: senderUserWallet.balance,
       fromUserId: decodedToken._id,
-      toUserId: data.toUserId,
+      toUserId: receiverUser._id,
       agentId: senderUser._id ?? null,
       transactionStatus: TransactionStatus.success,
       description: data.description,
@@ -233,7 +238,9 @@ const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
       throw new AppError(statusCode.BAD_REQUEST, "Insufficient balance.");
     }
 
-    const receiverUser = await User.findById(data.toUserId).session(session);
+    const receiverUser = await User.findOne({
+      phone: data.toUserPhone,
+    }).session(session);
     if (!receiverUser) {
       throw new AppError(statusCode.NOT_FOUND, "Receiver User not found.");
     }
@@ -244,7 +251,7 @@ const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
       );
     }
     const receiverUserWallet = await Wallet.findOne({
-      userId: data.toUserId,
+      userId: receiverUser._id,
     }).session(session);
     if (!receiverUserWallet) {
       throw new AppError(
@@ -256,9 +263,8 @@ const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
     validateAndThrowIfInvalidWallet(receiverUserWallet, validateWalletStatus);
     // Update balances
     const transactionFeeAmount =
-      Number(data.amount) * Number(transactionFee.toFixed(2));
-    const commissionAmount =
-      Number(data.amount) * Number(commission.toFixed(2));
+      Number(data.amount) * Number(transactionFeeToAgent);
+    const commissionAmount = Number(data.amount) * Number(commission);
 
     senderUserWallet.balance -= Number(data.amount) + transactionFeeAmount;
     receiverUserWallet.balance += Number(data.amount) + commissionAmount;
@@ -274,8 +280,8 @@ const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
       finalAmount: Number(data.amount) + transactionFeeAmount,
       amount: data.amount,
       fromUserId: decodedToken._id,
-      toUserId: data.toUserId,
-      agentId: senderUser._id ?? null,
+      toUserId: receiverUser._id,
+      agentId: receiverUser._id ?? null,
       transactionStatus: TransactionStatus.success,
       description: data.description,
     };

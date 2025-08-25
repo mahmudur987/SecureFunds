@@ -8,6 +8,7 @@ import { Wallet } from "../wallet/wallet.model";
 import mongoose from "mongoose";
 import { JwtPayload } from "jsonwebtoken";
 import BuildQuery from "../../utils/QueryBuilder";
+import { createUserToken } from "../../utils/createUserToken";
 
 export const createUser = async (payload: IUSER) => {
   const { email, phone, password, ...rest } = payload;
@@ -85,11 +86,66 @@ const updateUser = async (userId: string, payload: Partial<IUSER>) => {
   const isUserExist = await User.findById(userId);
   if (!isUserExist) throw new AppError(statusCode.NOT_FOUND, "User not found.");
   console.log(payload);
+  if (payload.password) {
+    payload.password = await bcrypt.hash(payload.password, 10);
+  }
+  if (payload.password === "") delete payload.password;
   const result = await User.findByIdAndUpdate(userId, payload, {
     new: true,
     runValidators: true,
   });
   return result;
+};
+const updateUserProfile = async (
+  decodedToken: JwtPayload,
+  payload: Partial<IUSER>
+) => {
+  console.log(payload);
+  const isUserExist = await User.findById(decodedToken._id);
+  if (!isUserExist) throw new AppError(statusCode.NOT_FOUND, "User not found.");
+  if (payload.password) {
+    payload.password = await bcrypt.hash(payload.password, 10);
+  }
+  if (payload.password === "") delete payload.password;
+
+  if (payload.email) {
+    const isEmailExist = await User.findOne({ email: payload.email });
+    if (isEmailExist)
+      throw new AppError(statusCode.BAD_REQUEST, "Email already exist");
+  }
+
+  if (payload.phone) {
+    const isPhoneExist = await User.findOne({ phone: payload.phone });
+    if (isPhoneExist)
+      throw new AppError(statusCode.BAD_REQUEST, "Phone already exist");
+  }
+
+  const result = await User.findByIdAndUpdate(decodedToken._id, payload, {
+    new: true,
+    runValidators: true,
+  });
+
+  if (payload.email) {
+    const jwtPayload = {
+      name: isUserExist.name,
+      email: payload.email,
+      _id: isUserExist._id,
+      phone: isUserExist.phone,
+      role: isUserExist.role,
+    };
+
+    const Token = createUserToken(jwtPayload);
+    return {
+      accessToken: Token.accessToken,
+      refreshToken: Token.refreshToken,
+      user: result,
+    };
+  }
+  return {
+    accessToken: "",
+    refreshToken: "",
+    user: result,
+  };
 };
 
 export const useServices = {
@@ -97,4 +153,5 @@ export const useServices = {
   getAllUsers,
   getSingleUser,
   updateUser,
+  updateUserProfile,
 };

@@ -61,10 +61,35 @@ const updateUser = catchAsync(
     });
   }
 );
+const updateUserProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user as JwtPayload;
+    const payload = req.body;
+    const result = await useServices.updateUserProfile(userId, payload);
 
+    if (result.accessToken) {
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: false,
+      });
+      res.cookie("accessToken", result.accessToken, {
+        httpOnly: true,
+        secure: false,
+      });
+    }
+
+    sendResponse(res, {
+      statusCode: statusCode.CREATED,
+      success: true,
+      message: "user profile updated successfully",
+      data: result,
+    });
+  }
+);
 export const userController = {
   createUser,
   getAllUsers,
   updateUser,
   getSingleUser,
+  updateUserProfile,
 };

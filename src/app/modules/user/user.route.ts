@@ -20,6 +20,11 @@ router.get(
   userController.getSingleUser
 );
 router.patch(
+  "/profile",
+  CheckRole(...Object.values(Role)),
+  userController.updateUserProfile
+);
+router.patch(
   "/:id",
   CheckRole("ADMIN"),
   validateRequest(updateUserZodSchema),
