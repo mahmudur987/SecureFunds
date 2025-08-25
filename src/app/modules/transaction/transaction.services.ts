@@ -344,18 +344,92 @@ const addMoney = async (decodedToken: JwtPayload, data: Transaction) => {
 };
 
 const getAllTransaction = async (query: Record<string, string>) => {
-  const userId = query.userId;
+  const {
+    limit = 10,
+    page = 1,
+    searchTerm,
+    sort = "-createdAt",
+    startDate,
+    endDate,
+    fields,
+    ...rest
+  } = query;
 
-  const result = await TransactionModel.find({
-    $or: [{ fromUserId: userId }, { toUserId: userId }, { agentId: userId }],
-  })
+  // ✅ Base filter: only transactions related to this user
+  const baseFilter: any = {};
+
+  // ✅ Extra filters from ...rest (transactionType, transactionStatus, etc.)
+  for (const [key, value] of Object.entries(rest)) {
+    if (value) baseFilter[key] = value;
+  }
+
+  // ✅ Search condition
+  let filter: any = { ...baseFilter };
+  if (searchTerm) {
+    filter = {
+      $and: [
+        baseFilter,
+        {
+          $or: [
+            { transactionType: { $regex: searchTerm, $options: "i" } },
+            { transactionStatus: { $regex: searchTerm, $options: "i" } },
+            { description: { $regex: searchTerm, $options: "i" } },
+            {
+              $expr: {
+                $regexMatch: {
+                  input: { $toString: "$_id" },
+                  regex: searchTerm,
+                  options: "i",
+                },
+              },
+            },
+          ],
+        },
+      ],
+    };
+  }
+
+  // ✅ Date range (strictly on createdAt)
+  if (startDate || endDate) {
+    const dateFilter: any = {};
+    if (startDate) dateFilter.$gte = new Date(startDate);
+    if (endDate) dateFilter.$lte = new Date(endDate);
+
+    filter = {
+      $and: [
+        filter,
+        { createdAt: dateFilter }, // 🔥 strict on createdAt
+      ],
+    };
+  }
+
+  // ✅ Count total documents for pagination
+  const total = await TransactionModel.countDocuments(filter);
+
+  // ✅ Query with pagination + sorting
+  const result = await TransactionModel.find(filter)
     .populate("fromUserId", "name email phone role")
     .populate("toUserId", "name email phone role")
     .populate("agentId", "name email phone role")
-    .sort({ createdAt: -1 })
+    .sort(sort)
+    .skip((Number(page) - 1) * Number(limit))
+    .limit(Number(limit))
     .exec();
 
-  return { count: result.length, data: result };
+  if (!result) {
+    throw new AppError(400, "Error while retrieving user transactions.");
+  }
+
+  return {
+    data: result,
+    meta: {
+      page: Number(page),
+      limit: Number(limit),
+      count: result.length,
+      total,
+      totalPage: Math.ceil(total / Number(limit)),
+    },
+  };
 };
 const getUserTransaction = async (
   decodedToken: JwtPayload,

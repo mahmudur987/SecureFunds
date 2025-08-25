@@ -70,7 +70,8 @@ const getAllTransaction = catchAsync(
       statusCode: statusCode.CREATED,
       success: true,
       message: "transaction retrieved successfully",
-      data: result,
+      data: result.data,
+      meta: result.meta,
     });
   }
 );
