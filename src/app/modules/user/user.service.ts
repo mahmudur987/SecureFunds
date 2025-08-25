@@ -66,9 +66,10 @@ export const createUser = async (payload: IUSER) => {
 };
 
 const getAllUsers = async (query: Record<string, string> = {}) => {
-  const { data, meta } = await BuildQuery(User.find(), query, {
-    searchFields: ["name", "description"],
-  });
+  const { data, meta } = await BuildQuery(User.find(), query, [
+    "name",
+    "description",
+  ]);
 
   return {
     data,

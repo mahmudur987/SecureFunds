@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Query } from "mongoose";
 
 const excludeField = ["page", "limit", "sort", "fields", "searchTerm"];
@@ -75,8 +76,6 @@ export class QueryBuilder<T> {
   }
 }
 
-import { Query } from "mongoose";
-
 interface QueryOptions {
   searchFields?: string[];
   excludeFields?: string[];
@@ -85,7 +84,6 @@ interface QueryOptions {
 export default async function BuildQuery<T>(
   modelQuery: Query<T[], T>,
   query: Record<string, any>,
-
   searchFields: string[] = []
 ) {
   const {

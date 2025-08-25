@@ -3,9 +3,10 @@ import { IWallet } from "./wallet.interface";
 import { Wallet } from "./wallet.model";
 
 const getAllWallet = async (query: Record<string, string>) => {
-  const { data, meta } = await BuildQuery(Wallet.find(), query, {
-    searchFields: ["name", "description"],
-  });
+  const { data, meta } = await BuildQuery(Wallet.find(), query, [
+    "name",
+    "description",
+  ]);
 
   return {
     data,

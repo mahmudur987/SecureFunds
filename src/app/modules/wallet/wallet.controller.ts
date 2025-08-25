@@ -7,7 +7,9 @@ import { catchAsync } from "../../utils/catchAsynch";
 
 const getAllWallets = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const result = await walletService.getAllWallet();
+    const result = await walletService.getAllWallet(
+      req.query as Record<string, string>
+    );
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
