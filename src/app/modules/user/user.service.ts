@@ -24,9 +24,10 @@ export const createUser = async (payload: IUSER) => {
 
     const alreadyPhoneExist = await User.findOne({ phone }).session(session);
     if (alreadyPhoneExist) throw new AppError(400, "Phone already exists");
-
-    const alreadyEmailExist = await User.findOne({ email }).session(session);
-    if (alreadyEmailExist) throw new AppError(400, "Email already exists");
+    if (email) {
+      const alreadyEmailExist = await User.findOne({ email }).session(session);
+      if (alreadyEmailExist) throw new AppError(400, "Email already exists");
+    }
 
     const authProvider: IAuthProvider = {
       provider: "credential",
