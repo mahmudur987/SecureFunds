@@ -15,7 +15,12 @@ const authProviderSchema = new Schema<IAuthProvider>(
 const userSchema = new Schema<IUSER>(
   {
     name: { type: String, required: true },
-    email: { type: String, unique: true },
+    email: {
+      type: String,
+      unique: true,
+      sparse: true, // ✅ allows multiple nulls or missing emails
+      trim: true,
+    },
     password: { type: String, required: true },
     role: { type: String, enum: Object.values(Role), default: Role.USER },
     phone: { type: String, required: true, unique: true },
@@ -37,6 +42,15 @@ const userSchema = new Schema<IUSER>(
   },
 
   { versionKey: false, timestamps: true }
+);
+userSchema.index(
+  { email: 1 },
+  {
+    unique: true,
+    partialFilterExpression: {
+      email: { $exists: true, $type: "string", $ne: "" },
+    },
+  }
 );
 
 export const User = model<IUSER>("User", userSchema);

@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import app from "./app";
 import { envVariables } from "./app/config/env.config";
 import { seedAdmin } from "./app/utils/seedSuperAdmin";
+import { User } from "./app/modules/user/user.model";
 
 const port = 5000;
 
