@@ -300,6 +300,89 @@ const cashOut = async (decodedToken: JwtPayload, data: Transaction) => {
     throw error;
   }
 };
+const AdminToAgent = async (decodedToken: JwtPayload, data: Transaction) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const senderUser = await User.findById(decodedToken._id).session(session);
+    if (!senderUser) {
+      throw new AppError(statusCode.NOT_FOUND, "Sender User not found.");
+    }
+    if (senderUser.role !== Role.ADMIN) {
+      throw new AppError(statusCode.BAD_REQUEST, "Only Admin can cash Out.");
+    }
+
+    const senderUserWallet = await Wallet.findOne({
+      userId: decodedToken._id,
+    }).session(session);
+    if (!senderUserWallet) {
+      throw new AppError(statusCode.NOT_FOUND, "Sender User Wallet not found.");
+    }
+
+    if (Number(senderUserWallet.balance) < data.amount) {
+      throw new AppError(statusCode.BAD_REQUEST, "Insufficient balance.");
+    }
+
+    const receiverUser = await User.findOne({
+      phone: data.toUserPhone,
+    }).session(session);
+    if (!receiverUser) {
+      throw new AppError(statusCode.NOT_FOUND, "Receiver User not found.");
+    }
+    if (receiverUser.role !== Role.AGENT) {
+      throw new AppError(
+        statusCode.BAD_REQUEST,
+        "You can Cash out to agents only."
+      );
+    }
+    const receiverUserWallet = await Wallet.findOne({
+      userId: receiverUser._id,
+    }).session(session);
+    if (!receiverUserWallet) {
+      throw new AppError(
+        statusCode.NOT_FOUND,
+        "Receiver User Wallet not found."
+      );
+    }
+    validateAndThrowIfInvalidWallet(senderUserWallet, validateWalletStatus);
+    validateAndThrowIfInvalidWallet(receiverUserWallet, validateWalletStatus);
+    // Update balances
+
+    senderUserWallet.balance -= Number(data.amount);
+    receiverUserWallet.balance += Number(data.amount);
+
+    await senderUserWallet.save({ session });
+    await receiverUserWallet.save({ session });
+
+    // Create transaction record
+    const transactionData: Transaction = {
+      transactionType: data.transactionType,
+      transactionFeeAmount: 0,
+      commissionAmount: 0,
+      finalAmount: Number(data.amount),
+      amount: data.amount,
+      fromUserId: decodedToken._id,
+      toUserId: receiverUser._id,
+      agentId: receiverUser._id ?? null,
+      transactionStatus: TransactionStatus.success,
+      description: data.description,
+    };
+
+    const result = await TransactionModel.create([transactionData], {
+      session,
+    });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return result[0];
+  } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
+    throw error;
+  }
+};
 
 // add -money user
 const addMoney = async (decodedToken: JwtPayload, data: Transaction) => {
@@ -535,4 +618,5 @@ export const transactionServices = {
   addMoney,
   getAllTransaction,
   getUserTransaction,
+  AdminToAgent,
 };

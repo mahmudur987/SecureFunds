@@ -59,6 +59,21 @@ const addMoney = catchAsync(
     });
   }
 );
+const AdminToAgent = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const decodedToken = req.user as JwtPayload;
+    const result = await transactionServices.AdminToAgent(
+      decodedToken,
+      req.body
+    );
+    sendResponse(res, {
+      statusCode: statusCode.CREATED,
+      success: true,
+      message: "Add Money to agent done successfully",
+      data: result,
+    });
+  }
+);
 
 const getAllTransaction = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -99,4 +114,5 @@ export const transactionController = {
   addMoney,
   getAllTransaction,
   getUserTransaction,
+  AdminToAgent,
 };

@@ -45,7 +45,11 @@ router.post(
 
 // admin to agent addMoney
 
-router.post("/addBalance", CheckRole("ADMIN"));
+router.post(
+  "/addMoneyToAgent",
+  CheckRole("ADMIN"),
+  transactionController.AdminToAgent
+);
 
 // get all transaction
 router.get("/", CheckRole("ADMIN"), transactionController.getAllTransaction);
